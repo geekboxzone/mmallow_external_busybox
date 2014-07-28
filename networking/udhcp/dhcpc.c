@@ -845,7 +845,9 @@ static NOINLINE int udhcp_recv_raw_packet(struct dhcp_packet *dhcp_pkt, int fd)
 	int bytes;
 	struct ip_udp_dhcp_packet packet;
 	uint16_t check;
+#ifdef PACKET_AUXDATA
 	unsigned char cmsgbuf[CMSG_LEN(sizeof(struct tpacket_auxdata))];
+#endif
 	struct iovec iov;
 	struct msghdr msg;
 	struct cmsghdr *cmsg;
@@ -858,8 +860,10 @@ static NOINLINE int udhcp_recv_raw_packet(struct dhcp_packet *dhcp_pkt, int fd)
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_iov = &iov;
 	msg.msg_iovlen = 1;
+#ifdef PACKET_AUXDATA
 	msg.msg_control = cmsgbuf;
 	msg.msg_controllen = sizeof(cmsgbuf);
+#endif
 	for (;;) {
 		bytes = recvmsg(fd, &msg, 0);
 		if (bytes < 0) {
@@ -906,6 +910,7 @@ static NOINLINE int udhcp_recv_raw_packet(struct dhcp_packet *dhcp_pkt, int fd)
 		return -2;
 	}
 
+#ifdef PACKET_AUXDATA
 	for (cmsg = CMSG_FIRSTHDR(&msg); cmsg; cmsg = CMSG_NXTHDR(&msg, cmsg)) {
 		if (cmsg->cmsg_level == SOL_PACKET
 		 && cmsg->cmsg_type == PACKET_AUXDATA
@@ -919,6 +924,7 @@ static NOINLINE int udhcp_recv_raw_packet(struct dhcp_packet *dhcp_pkt, int fd)
 				goto skip_udp_sum_check;
 		}
 	}
+#endif
 
 	/* verify UDP checksum. IP header has to be modified for this */
 	memset(&packet.ip, 0, offsetof(struct iphdr, protocol));
@@ -1041,12 +1047,14 @@ static int udhcp_raw_socket(int ifindex)
 			log1("Attached filter to raw socket fd"); // log?
 	}
 
+#ifdef PACKET_AUXDATA
 	if (setsockopt(fd, SOL_PACKET, PACKET_AUXDATA,
 			&const_int_1, sizeof(int)) < 0
 	) {
 		if (errno != ENOPROTOOPT)
 			log1("Can't set PACKET_AUXDATA on raw socket");
 	}
+#endif
 
 	log1("Created raw socket");
 
