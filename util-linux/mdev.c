@@ -987,7 +987,11 @@ wait_for_seqfile(const char *seq)
 			dbg2("%s waiting for '%s'", curtime(), seqbuf);
 			do_once = 0;
 		}
+#ifdef ANDROID
+		if (__rt_sigtimedwait(&set_CHLD, NULL, &ts) >= 0) {
+#else
 		if (sigtimedwait(&set_CHLD, NULL, &ts) >= 0) {
+#endif
 			dbg3("woken up");
 			continue; /* don't decrement timeout! */
 		}
