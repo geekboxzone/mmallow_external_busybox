@@ -33,11 +33,11 @@
 //usage:     "\n	-e	Display other/more information"
 //usage:     "\n	-A inet" IF_FEATURE_IPV6("{6}") "	Select address family"
 
-#include <net/route.h>
-#include <net/if.h>
-
 #include "libbb.h"
 #include "inet_common.h"
+
+#include <net/route.h>
+#include <net/if.h>
 
 
 #ifndef RTF_UP
