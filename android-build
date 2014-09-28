@@ -23,9 +23,9 @@ echo $P
 GCCVER=$(get_build_var TARGET_GCC_VERSION)
 
 # Old toolchain path before kitkat
-export PATH="$A/prebuilt/linux-x86/toolchain/arm-eabi-$GCCVER/bin:$PATH"
+#export PATH="$A/prebuilt/linux-x86/toolchain/arm-eabi-$GCCVER/bin:$PATH"
 # Kitkat's toolchain path for static build
-export PATH="$A/prebuilts/gcc/linux-x86/arm/arm-eabi-$GCCVER/bin:$PATH"
+#export PATH="$A/prebuilts/gcc/linux-x86/arm/arm-eabi-$GCCVER/bin:$PATH"
 # Kitkat's toolchain path for dynamic build
 export PATH="$A/prebuilts/gcc/linux-x86/arm/arm-linux-androideabi-$GCCVER/bin:$PATH"
 echo $PATH
@@ -41,10 +41,15 @@ echo ANDROID_EXTRA_FLAGS=$ANDROID_EXTRA_FLAGS
 
 sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"$ANDROID_EXTRA_FLAGS\"|g" configs/android_defconfig
 cat configs/android_defconfig | grep -v TOUCH > configs/android_defconfig.new
+mv configs/android_defconfig.new configs/android_defconfig
+cat configs/android_defconfig | grep -v CONFIG_CROSS_COMPILER_PREFIX > configs/android_defconfig.new
+mv configs/android_defconfig.new configs/android_defconfig
 cat configs/android_defconfig | grep -v STATIC > configs/android_defconfig.new
 mv configs/android_defconfig.new configs/android_defconfig
+echo '# CONFIG_TOUCH is not set' >> configs/android_defconfig
 echo '# CONFIG_FEATURE_TOUCH_NODEREF is not set' >> configs/android_defconfig
 echo 'CONFIG_STATIC=y' >> configs/android_defconfig
+echo 'CONFIG_CROSS_COMPILER_PREFIX="arm-linux-androideabi-"' >> configs/android_defconfig
 
 make android_defconfig
 
@@ -59,5 +64,5 @@ else
 	LDLIBS="dl m c gcc"
 fi
 
-make EXTRA_LDFLAGS="$LDFLAGS" LDLIBS="$LDLIBS" "$@"
+make V=1 EXTRA_LDFLAGS="$LDFLAGS" LDLIBS="$LDLIBS" "$@" -j32
 cp busybox $A/out/target/product/$P/system/bin/busybox
