@@ -40,12 +40,15 @@ ANDROID_EXTRA_FLAGS=`echo $ANDROID_EXTRA_FLAGS | sed -e 's/-Werror=format-securi
 echo ANDROID_EXTRA_FLAGS=$ANDROID_EXTRA_FLAGS
 
 sed -i "s|^CONFIG_EXTRA_CFLAGS=.*|CONFIG_EXTRA_CFLAGS=\"$ANDROID_EXTRA_FLAGS\"|g" configs/android_defconfig
+cat configs/android_defconfig | grep -v CONFIG_PKILL > configs/android_defconfig.new
+mv configs/android_defconfig.new configs/android_defconfig
 cat configs/android_defconfig | grep -v TOUCH > configs/android_defconfig.new
 mv configs/android_defconfig.new configs/android_defconfig
 cat configs/android_defconfig | grep -v CONFIG_CROSS_COMPILER_PREFIX > configs/android_defconfig.new
 mv configs/android_defconfig.new configs/android_defconfig
 cat configs/android_defconfig | grep -v STATIC > configs/android_defconfig.new
 mv configs/android_defconfig.new configs/android_defconfig
+echo 'CONFIG_PKILL=y' >> configs/android_defconfig
 echo '# CONFIG_TOUCH is not set' >> configs/android_defconfig
 echo '# CONFIG_FEATURE_TOUCH_NODEREF is not set' >> configs/android_defconfig
 echo 'CONFIG_STATIC=y' >> configs/android_defconfig
